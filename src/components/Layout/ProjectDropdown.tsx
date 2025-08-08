@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, FolderOpen, Plus, Trash2 } from 'lucide-react';
 import { SavedProject, getSavedProjects, deleteProject } from '../../utils/projectStorage';
+import { User } from '../../lib/supabase';
 
 interface ProjectDropdownProps {
-  user: string | null;
+  user: User | null;
   currentProject: any;
   onNewProject: () => void;
   onLoadProject: (project: SavedProject) => void;
@@ -51,7 +52,7 @@ export default function ProjectDropdown({ user, currentProject, onNewProject, on
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
       >
-        <span>{user || 'Guest'}</span>
+        <span>Projects</span>
         <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
