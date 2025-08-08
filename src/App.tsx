@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from './hooks/useAuth';
 import Header from './components/Layout/Header';
 import LoginPage from './components/Auth/LoginPage';
 import ProjectSetup from './components/ProjectSetup';
@@ -11,8 +12,8 @@ import { generateAIReport } from './utils/aiReport';
 import { saveProject, SavedProject, generateProjectId } from './utils/projectStorage';
 
 function App() {
+  const { user, loading } = useAuth();
   const [currentPage, setCurrentPage] = useState<'login' | 'project' | 'home' | 'input' | 'results'>('login');
-  const [user, setUser] = useState<string | null>(null);
   const [project, setProject] = useState<ProjectInfo | null>(null);
   const [roiResults, setRoiResults] = useState<ROIResults | null>(null);
   const [inputData, setInputData] = useState<{
@@ -23,13 +24,22 @@ function App() {
   } | null>(null);
   const geminiApiKey = 'AIzaSyCKXG-cpWucKYYfMxY-fGVDOW5VWURt8T0';
 
-  const handleLogin = (username: string) => {
-    setUser(username);
+  // Redirect authenticated users away from login page
+  React.useEffect(() => {
+    if (!loading) {
+      if (user && currentPage === 'login') {
+        setCurrentPage('project');
+      } else if (!user && currentPage !== 'login') {
+        setCurrentPage('login');
+      }
+    }
+  }, [user, loading, currentPage]);
+
+  const handleLogin = () => {
     setCurrentPage('project');
   };
 
   const handleSkipLogin = () => {
-    setUser(null);
     setCurrentPage('project');
   };
 
@@ -38,7 +48,7 @@ function App() {
       id: generateProjectId(),
       name: projectName,
       description,
-      createdBy: user || 'Guest',
+      createdBy: user?.user_metadata?.full_name || user?.email || 'Guest',
       createdAt: new Date()
     };
     setProject(projectInfo);
@@ -48,7 +58,7 @@ function App() {
       id: projectInfo.id,
       name: projectInfo.name,
       description: projectInfo.description,
-      createdBy: projectInfo.createdBy || 'Guest',
+      createdBy: projectInfo.createdBy,
       createdAt: projectInfo.createdAt,
       lastModified: new Date()
     };
@@ -77,7 +87,7 @@ function App() {
         id: project.id,
         name: project.name,
         description: project.description,
-        createdBy: project.createdBy || 'Guest',
+        createdBy: project.createdBy,
         createdAt: project.createdAt,
         lastModified: new Date(),
         data,
@@ -137,13 +147,21 @@ function App() {
     }
   };
 
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {currentPage !== 'login' && (
         <Header 
           currentPage={currentPage} 
           onNavigate={setCurrentPage}
-          user={user}
           project={project}
           onNewProject={handleNewProject}
           onLoadProject={handleLoadProject}

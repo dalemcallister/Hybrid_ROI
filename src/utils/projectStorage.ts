@@ -12,6 +12,7 @@ export interface SavedProject {
     common: any;
   };
   results?: any;
+  userId?: string; // Add user ID for future multi-user support
 }
 
 const PROJECTS_STORAGE_KEY = 'tbl_roi_projects';
